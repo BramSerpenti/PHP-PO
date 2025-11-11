@@ -34,32 +34,28 @@
     <h1>PlanIt</h1>
 
     
-   <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
+  <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
     <a href = groups.php>   <div class="nav-item">⚡ Groups</div></a>
     <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
     <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> <!-- https://emojipedia.org/busts-in-silhouette -->
     <a href = Settings.php> <div class="nav-item">⚙️ Settings</div></a>
-    <a href = login.php><div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">👤 Login</div></a>
+    <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">👤 Login</div>
   </div>
 
   <div class="main">
-    <div class="header">Good day!</div>
-    <div class="subheader">Let's finish your group projects!</div>
+    <div class="header">Groups</div>
+ <button class="btn" style="float: right;">new group</button>
+
 
     <div class="cards">
       <div class="card">
         <h3>📅 Deadlines</h3>
         <div class="task-buttons">
+            
         </div>
       </div>
 
-      <div class="card">
-        <h3>👥 Groups</h3>
-      </div>
-
-      <div class="card">
-        <h3>📃 Tasks</h3>
-      </div>
+      
     </div>
   </div>
 </body>

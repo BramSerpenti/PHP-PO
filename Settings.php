@@ -13,10 +13,11 @@
     }
     .card {
       background: white;
-      padding: 20px;
+      padding: 10px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      min-height: 200px;
+      min-height: 600px;
+      min-width: 700px
     }
     .card h3 {
       margin-top: 0;
@@ -34,7 +35,7 @@
     <h1>PlanIt</h1>
 
     
-   <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
+  <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
     <a href = groups.php>   <div class="nav-item">⚡ Groups</div></a>
     <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
     <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> <!-- https://emojipedia.org/busts-in-silhouette -->
@@ -43,23 +44,19 @@
   </div>
 
   <div class="main">
-    <div class="header">Good day!</div>
-    <div class="subheader">Let's finish your group projects!</div>
+    <div class="header">Settings</div>
+ 
+
 
     <div class="cards">
       <div class="card">
-        <h3>📅 Deadlines</h3>
+        <h3></h3>
         <div class="task-buttons">
+            
         </div>
       </div>
 
-      <div class="card">
-        <h3>👥 Groups</h3>
-      </div>
-
-      <div class="card">
-        <h3>📃 Tasks</h3>
-      </div>
+      
     </div>
   </div>
 </body>

@@ -57,7 +57,7 @@
 
 
   <div class="main">
-    <div class="header">Inloggen</div>
+    <div class="header">Registeren</div>
  
 
 
@@ -76,7 +76,7 @@
           <input type="wachtwoord" id="fwachtwoord" name="fwachtwoord" placeholder="wachtwoord...">
 
 
-          <button type="submit" id="btn">Versturen</button>
+          <a href = userinfo.php><button type="submit" id="btn">Versturen</button></a>
         </form>
             
         </div>
@@ -87,6 +87,6 @@
       
     </div>
   </div>
-  <a href = registeren.php><button class = btn id = btn>Registreren</button></a>
+  <a href = login.php><button class = btn id = btn>Inloggen</button></a>
 </body>
 </html>

@@ -40,7 +40,7 @@
       height: 40px;
     }
 
-    input[type="text"], input[type="email"], input[type="wachtwoord"] {
+    input[type="text"], input[type="email"], input[type="password"] {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -73,10 +73,10 @@
           <input type="email" id="femail" name="femail" placeholder="e-mailadres...">
 
           <label for="fwachtwoord">Wachtwoord:</label>
-          <input type="wachtwoord" id="fwachtwoord" name="fwachtwoord" placeholder="wachtwoord...">
+          <input type="password" id="fwachtwoord" name="fwachtwoord" placeholder="wachtwoord...">
 
 
-          <a href = userinfo.php><button type="submit" id="btn">Versturen</button></a>
+          <button type="submit" id="btn">Versturen</button>
         </form>
             
         </div>
@@ -90,3 +90,15 @@
   <a href = login.php><button class = btn id = btn>Inloggen</button></a>
 </body>
 </html>
+<!-- http://w3schools.com/php/php_forms.asp --> 
+<?php
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $email = $_POST['femail'] ?? '';
+  $wachtwoord = $_POST['fwachtwoord'] ?? '';
+
+  header("Location: userinfo.php"); //https://www.w3schools.com/php/func_network_header.asp
+  exit();
+} else {
+  echo "geen gegevens ingevuld!";
+}
+?>

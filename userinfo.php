@@ -57,7 +57,7 @@
 
 
   <div class="main">
-    <div class="header">Inloggen</div>
+    <div class="header">Persoonlijke informatie</div>
  
 
 
@@ -69,11 +69,17 @@
 
         <form method="POST">
 
-          <label for="femail">E-mail:</label>
-          <input type="email" id="femail" name="femail" placeholder="e-mailadres...">
+          <label for="fname">Naam:</label>
+          <input type="text" id="fname" name="fname" placeholder="Je naam...">
 
-          <label for="fwachtwoord">Wachtwoord:</label>
-          <input type="wachtwoord" id="fwachtwoord" name="fwachtwoord" placeholder="wachtwoord...">
+          <label for="fname">Naam:</label>
+          <input type="text" id="fname" name="fname" placeholder="Je naam...">
+
+          <label for="fname">Naam:</label>
+          <input type="text" id="fname" name="fname" placeholder="Je naam...">
+
+          <label for="fname">Naam:</label>
+          <input type="text" id="fname" name="fname" placeholder="Je naam...">
 
 
           <button type="submit" id="btn">Versturen</button>
@@ -87,6 +93,16 @@
       
     </div>
   </div>
-  <a href = registeren.php><button class = btn id = btn>Registreren</button></a>
+  <?php
+  if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $email = $_POST['femail'] ?? '';
+  $wachtwoord = $_POST['fwachtwoord'] ?? '';
+
+  header("Location: homepaginaphp.php"); //https://www.w3schools.com/php/func_network_header.asp
+  exit();
+} else {
+  echo "geen gegevens ingevuld!";
+}
+?>
 </body>
 </html>

@@ -100,9 +100,7 @@
 
   header("Location: homepaginaphp.php"); //https://www.w3schools.com/php/func_network_header.asp
   exit();
-} else {
-  echo "geen gegevens ingevuld!";
-}
+} 
 ?>
 </body>
 </html>

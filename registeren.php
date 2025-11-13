@@ -98,7 +98,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   header("Location: userinfo.php"); //https://www.w3schools.com/php/func_network_header.asp
   exit();
-} else {
-  echo "geen gegevens ingevuld!";
-}
+} 
 ?>

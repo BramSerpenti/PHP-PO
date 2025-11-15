@@ -119,12 +119,15 @@
 
   <div class="overlay" id="popupOverlay2">
     <div class="popup2">
-      <h2>New group</h2>
+      <h2>New Task</h2>
       <p>
         <form method="POST">
 
-          <label for="ftitel">Titel</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="Titel..."><br>
+          <label for="ftask">Name</label>
+          <input type="text" id="ftitel" name="ftitel" placeholder="Name of Task..."><br>
+
+          <label for="fomschrijving">omschrijving</label>
+          <input type="text" id="ftitel" name="ftitel" placeholder="........"><br>
 
 
           

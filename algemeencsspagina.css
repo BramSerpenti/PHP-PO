@@ -97,3 +97,15 @@
     border-radius: 4px;
     cursor: pointer;
   }
+
+     .task {
+      padding: 6px;
+      background: #eef4ff;
+      margin-top: 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .task:hover {
+      background: #d8e4ff;
+    }

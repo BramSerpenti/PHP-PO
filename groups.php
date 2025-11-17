@@ -59,35 +59,45 @@
 
       <div class="cards">
         <div class="card">
-          <h3 onclick="openPopup2()">Maatschapijleer</h3>
+          <h3>Maatschapijleer</h3>
           <div class="task-buttons">
             <!-- task buttons hier -->
           </div>
+          <button class="btn" onclick="openTaskPopup(this.parentElement)">Nieuwe Taak</button>
+
         </div>
     
 
         <div class="card">
-          <h3 onclick="openPopup3()">Informatica</h3>
+          <h3>Informatica</h3>
           <div class="task-buttons">
             <!-- task buttons hier -->
           </div>
+          <button class="btn" onclick="openTaskPopup(this.parentElement)">Nieuwe Taak</button>
+
         </div>
  
 
 
         <div class="card">
-          <h3 onclick="openPopup4()">Nederlands</h3>
+          <h3>Nederlands</h3>
           <div class="task-buttons">
             <!-- task buttons hier -->
           </div>
+          <button class="btn" onclick="openTaskPopup(this.parentElement)">Nieuwe Taak</button>
+
         </div>
   
 
         <div class="card">
-          <h3 onclick="openPopup5()">Engels</h3>
+          <h3>Engels</h3>
              <div class="task-buttons">
     <!-- task buttons hier -->
+     
             </div>
+            
+            <button class="btn" onclick="openTaskPopup(this.parentElement)">Nieuwe Taak</button>
+
         </div>
     
 
@@ -128,132 +138,32 @@
 
 
 
-
-  <div class="overlay" id="popupOverlay2">
-    <div class="popup">
-      <h2>New Task</h2>
-      <p>
-        <form method="POST">
-
-          <label for="ftask">Name</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="Name of Task..."><br>
-
-          <label for="fomschrijving">omschrijving</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="........"><br>
-
-          
-          <label for="deadline">Deadline:</label><br>
-          <input type="date" id="deadline" name="deadline"><br><br>
-
-          <label for="group">Friends:</label><br>
-          <select id="group" name="group" required>
-           <!-- Opties kunnen dynamisch worden gevuld vanuit database -->
-          <option value="1">Friend 1</option>
-          <option value="2">Friend 2</option>
-            </select><br><br>
-
-          
-        </form>
-            </p>
-      <button class="close-btn" onclick="closePopup2()">Make</button>
-    </div>
-  </div>
-
-
-   <div class="overlay" id="popupOverlay3">
-    <div class="popup">
-      <h2>New Task</h2>
-      <p>
-        <form method="POST">
-
-          <label for="ftask">Name</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="Name of Task..."><br>
-
-          <label for="fomschrijving">omschrijving</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="........"><br>
-
-          
-          <label for="deadline">Deadline:</label><br>
-          <input type="date" id="deadline" name="deadline"><br><br>
-
-          <label for="group">Friends:</label><br>
-          <select id="group" name="group" required>
-           <!-- Opties kunnen dynamisch worden gevuld vanuit database -->
-          <option value="1">Friend 1</option>
-          <option value="2">Friend 2</option>
-            </select><br><br>
-
-          
-        </form>
-            </p>
-      <button class="close-btn" onclick="closePopup3()">Make</button>
-    </div>
-  </div>
-
   
-   <div class="overlay" id="popupOverlay4">
-    <div class="popup">
-      <h2>New Task</h2>
-      <p>
-        <form method="POST">
 
-          <label for="ftask">Name</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="Name of Task..."><br>
 
-          <label for="fomschrijving">omschrijving</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="........"><br>
 
-          
-          <label for="deadline">Deadline:</label><br>
-          <input type="date" id="deadline" name="deadline"><br><br>
-
-          <label for="group">Friends:</label><br>
-          <select id="group" name="group" required>
-           <!-- Opties kunnen dynamisch worden gevuld vanuit database -->
-          <option value="1">Friend 1</option>
-          <option value="2">Friend 2</option>
-            </select><br><br>
-
-          
-        </form>
-            </p>
-      <button class="close-btn" onclick="closePopup4()">Make</button>
-    </div>
+<!-- Popup voor taak aanmaken -->
+<div class="overlay" id="taskPopupOverlay">
+  <div class="popup">
+    <h2>Nieuwe Taak</h2>
+    <input type="text" id="taskTitle" placeholder="Titel van taak"><br><br>
+    <input type="text" id="taskDescription" placeholder="Omschrijving"><br><br>
+    <input type="date" id="taskDeadline"><br><br>
+    <button class="btn" onclick="createTask()">Toevoegen</button>
+    <button class="close-btn" onclick="closeTaskPopup()">Sluiten</button>
   </div>
+</div>
 
-
-  
-   <div class="overlay" id="popupOverlay5">
-    <div class="popup">
-      <h2>New Task</h2>
-      <p>
-        <form method="POST">
-
-          <label for="ftask">Name</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="Name of Task..."><br>
-
-          <label for="fomschrijving">omschrijving</label>
-          <input type="text" id="ftitel" name="ftitel" placeholder="........"><br>
-
-          
-          <label for="deadline">Deadline:</label><br>
-          <input type="date" id="deadline" name="deadline"><br><br>
-
-          <label for="group">Friends:</label><br>
-          <select id="group" name="group" required>
-           <!-- Opties kunnen dynamisch worden gevuld vanuit database -->
-          <option value="1">Friend 1</option>
-          <option value="2">Friend 2</option>
-            </select><br><br>
-
-          
-        </form>
-            </p>
-      <button class="close-btn" onclick="closePopup5()">Make</button>
-    </div>
+<!-- Popup voor taakdetails -->
+<div class="overlay" id="taskDetailOverlay">
+  <div class="popup">
+    <h2 id="taskDetailTitle">Taak Titel</h2>
+    <p id="taskDetailDescription">Omschrijving</p>
+    <p><strong>Deadline:</strong> <span id="taskDetailDeadline"></span></p>
+    <button class="btn" onclick="finishTask()">✅ Finish Task</button>
+    <button class="close-btn" onclick="closeTaskDetail()">❌ Close</button>
   </div>
-
-
+</div>
 
 
   
@@ -264,39 +174,6 @@
 
     function closePopup() {
       document.getElementById('popupOverlay').style.display = 'none';
-    }
-
-
-     function openPopup2() {
-      document.getElementById('popupOverlay2').style.display = 'flex';
-    }
-
-    function closePopup2() {
-      document.getElementById('popupOverlay2').style.display = 'none';
-    }
-
-    function openPopup3() {
-      document.getElementById('popupOverlay3').style.display = 'flex';
-    }
-
-    function closePopup3() {
-      document.getElementById('popupOverlay3').style.display = 'none';
-    }
-
-    function openPopup4() {
-      document.getElementById('popupOverlay4').style.display = 'flex';
-    }
-
-    function closePopup4() {
-      document.getElementById('popupOverlay4').style.display = 'none';
-    }
-
-    function openPopup5() {
-      document.getElementById('popupOverlay5').style.display = 'flex';
-    }
-
-    function closePopup5() {
-      document.getElementById('popupOverlay5').style.display = 'none';
     }
 
  
@@ -310,7 +187,7 @@ function addElement() {
   newDiv.className = "card";
 
   const titelInput = document.getElementById("ftitel").value;
-  
+
   // h3 titel
   const newTitle = document.createElement("h3");
   newTitle.textContent = titelInput || "Nieuwe Groep";
@@ -324,14 +201,14 @@ function addElement() {
   taskButtons.className = "task-buttons";
   newDiv.appendChild(taskButtons);
 
-  // verwijderknop
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "❌ Verwijderen";
-  removeBtn.style.marginTop = "10px";
-  removeBtn.onclick = function() {
-    removeGroup(removeBtn);
+  // nieuwe taak knop
+  const newTaskButton = document.createElement("button");
+  newTaskButton.className = "btn";
+  newTaskButton.textContent = "Nieuwe Taak";
+  newTaskButton.onclick = function() {
+    openTaskPopup(this.parentElement);
   };
-  newDiv.appendChild(removeBtn);
+  newDiv.appendChild(newTaskButton);
 
   // voeg toe aan container
   const container = document.querySelector(".cards");
@@ -341,13 +218,65 @@ function addElement() {
   document.getElementById("ftitel").value = "";
 }
 
-function removeGroup(button) {
-  // button is het element waarop geklikt is
-  const card = button.parentElement; // parentElement is de .card
-  card.remove(); // verwijdert de card uit de DOM
-}
-  
-  </script>
+
+  let currentGroupCard = null;
+
+  function openTaskPopup(groupCard) {
+    currentGroupCard = groupCard;
+    document.getElementById('taskPopupOverlay').style.display = 'flex';
+  }
+
+  function closeTaskPopup() {
+    document.getElementById('taskPopupOverlay').style.display = 'none';
+  }
+
+  function createTask() {
+    const title = document.getElementById('taskTitle').value;
+    const description = document.getElementById('taskDescription').value;
+    const deadline = document.getElementById('taskDeadline').value;
+
+    if (!title || !currentGroupCard) return;
+
+    const taskDiv = document.createElement('div');
+    taskDiv.className = 'task';
+    taskDiv.textContent = title;
+
+    taskDiv.onclick = function () {
+      document.getElementById('taskDetailTitle').textContent = title;
+      document.getElementById('taskDetailDescription').textContent = description;
+      document.getElementById('taskDetailDeadline').textContent = deadline;
+      document.getElementById('taskDetailOverlay').style.display = 'flex';
+      taskDiv.dataset.finished = "false";
+      taskDiv.dataset.ref = taskDiv;
+    };
+
+    currentGroupCard.querySelector('.task-buttons').appendChild(taskDiv);
+
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDescription').value = '';
+    document.getElementById('taskDeadline').value = '';
+    closeTaskPopup();
+  }
+
+  function finishTask() {
+    const overlay = document.getElementById('taskDetailOverlay');
+    const title = document.getElementById('taskDetailTitle').textContent;
+
+    const allTasks = document.querySelectorAll('.task');
+    allTasks.forEach(task => {
+      if (task.textContent === title && task.dataset.finished === "false") {
+        task.style.textDecoration = 'line-through';
+        task.dataset.finished = "true";
+      }
+    });
+
+    overlay.style.display = 'none';
+  }
+
+  function closeTaskDetail() {
+    document.getElementById('taskDetailOverlay').style.display = 'none';
+  }
+</script>
 
 </body>
 </html>

@@ -109,3 +109,7 @@
     .task:hover {
       background: #d8e4ff;
     }
+
+    .voorbeeld { 
+      display: none;
+    }

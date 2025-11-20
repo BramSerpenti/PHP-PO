@@ -92,11 +92,51 @@
 </html>
 <!-- http://w3schools.com/php/php_forms.asp --> 
 <?php
+
+//  https://www.w3schools.com/php/php_mysql_connect.asp
+$servername = "localhost";
+$username = "root";       
+$password = "";         
+$dbname = "po_webapp";        
+
+// Maak verbinding
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Controleer verbinding
+if ($conn->connect_error) {
+  die("Verbinding mislukt: " . $conn->connect_error);
+};
+
+
+// https://www.w3schools.com/php/php_mysql_insert.asp en https://www.tutorialrepublic.com/php-tutorial/php-mysql-login-system.php
+
+// Verwerk formulier alleen als het is verzonden
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $email = $_POST['femail'] ?? '';
   $wachtwoord = $_POST['fwachtwoord'] ?? '';
 
-  header("Location: userinfo.php"); //https://www.w3schools.com/php/func_network_header.asp
-  exit();
-} 
+  // Simpele validatie
+  if (!empty($email) && !empty($wachtwoord)) {
+    // Wachtwoord versleutelen vóórdat je het opslaat
+    $hashed_password = password_hash($wachtwoord, PASSWORD_DEFAULT);
+
+    // Prepared statement om SQL-injectie te voorkomen
+    $stmt = $conn->prepare("INSERT INTO users (username, wachtwoord, role) VALUES (?, ?, 'student')");
+    $stmt->bind_param("ss", $email, $hashed_password);
+
+    if ($stmt->execute()) {
+      echo "✅ Nieuwe gebruiker succesvol toegevoegd!";
+      header("Location: userinfo.php");
+      exit();
+    } else {
+      echo "❌ Fout bij toevoegen: " . $stmt->error;
+    }
+
+    $stmt->close();
+  } else {
+    echo "⚠️ Vul zowel e-mail als wachtwoord in.";
+  }
+}
+
+$conn->close();
 ?>

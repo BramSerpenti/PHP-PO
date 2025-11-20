@@ -50,6 +50,19 @@
       border-radius: 6px;
     }
 
+    .error-box {
+  background-color: #ffe0e0;
+  color: #a30000;
+  border: 1px solid #ffb3b3;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 20px;
+  font-weight: bold;
+  height: 20px;
+  z-index: 1000;
+}
+
+
    
   </style>
 </head>
@@ -88,16 +101,61 @@
     </div>
   </div>
   <a href = registeren.php><button class = btn id = btn>Registreren</button></a>
-  <?php
-  if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  $email = $_POST['femail'] ?? '';
+<?php
+session_start(); // Altijd bovenaan!
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "po_webapp";
+
+// Maak verbinding
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+  die("Verbinding mislukt: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $loginInput = $_POST['femail'] ?? '';
   $wachtwoord = $_POST['fwachtwoord'] ?? '';
 
-  header("Location: homepagina.php"); //https://www.w3schools.com/php/func_network_header.asp
-  exit();
-} 
- 
+  if (!empty($loginInput) && !empty($wachtwoord)) {
+    // Zoek gebruiker op basis van gebruikersnaam (of e-mail als je dat gebruikt als username)
+    $stmt = $conn->prepare("SELECT id, username, wachtwoord FROM users WHERE username = ?");
+    $stmt->bind_param("s", $loginInput);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows === 1) {
+      $stmt->bind_result($id, $username, $hashed_password);
+      $stmt->fetch();
+
+      if (password_verify($wachtwoord, $hashed_password)) {
+        // Login geslaagd
+        $_SESSION["loggedin"] = true;
+        $_SESSION["id"] = $id;
+        $_SESSION["username"] = $username;
+
+        header("Location: homepaginaphp.php");
+        exit();
+      } else {
+        echo "<div class= 'error-box'>❌ Ongeldig wachtwoord.</div>";
+      }
+    } else {
+      echo '<div class="error-box">❌ Geen account gevonden met deze gebruikersnaam.</div>';
+
+    }
+
+    $stmt->close();
+  } else {
+   echo "<div class= 'error-box'>⚠️ Vul zowel gebruikersnaam als wachtwoord in.</div>";
+  }
+}
+
+$conn->close();
 ?>
+
+
 </body>
 
 </html>

@@ -88,7 +88,8 @@
           <label for="fwachtwoord">Wachtwoord:</label>
           <input type="password" id="fwachtwoord" name="fwachtwoord" placeholder="wachtwoord...">
 
-
+                    
+         
           <button type="submit" id="btn">Versturen</button>
         </form>
             

@@ -4,7 +4,6 @@
   <link rel="stylesheet" href="algemeencsspagina.css">
   <title>PlanIt</title>
   <style>
-   
     .cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -28,7 +27,6 @@
     }
 
     #btn {
-
       background: #0a6bff;
       border: none;
       padding: 10px 14px;
@@ -49,17 +47,12 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
-   
   </style>
 </head>
 <body>
 
-
   <div class="main">
     <div class="header">Persoonlijke informatie</div>
- 
-
 
     <div class="cards">
       <div class="card">
@@ -67,40 +60,83 @@
         <div class="task-buttons">
           <h3>Vul je gegevens in</h3>
 
-        <form method="POST">
+          <form method="POST">
+            <label for="fname">Naam:</label>
+            <input type="text" id="fname" name="fname" placeholder="Je naam...">
 
-          <label for="fname">Naam:</label>
-          <input type="text" id="fname" name="fname" placeholder="Je naam...">
+            <label for="lastname">Achtermaam:</label>
+            <input type="text" id="lastname" name="lastname" placeholder="Je Achternaam ...">
 
-          <label for="fname">Naam:</label>
-          <input type="text" id="fname" name="fname" placeholder="Je naam...">
-
-          <label for="fname">Naam:</label>
-          <input type="text" id="fname" name="fname" placeholder="Je naam...">
-
-          <label for="fname">Naam:</label>
-          <input type="text" id="fname" name="fname" placeholder="Je naam...">
-
-
-          <button type="submit" id="btn">Versturen</button>
-        </form>
-            
+            <button type="submit" id="btn">Versturen</button>
+          </form>
         </div>
       </div>
-
-    
-
-      
     </div>
   </div>
-  <?php
-  if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  $email = $_POST['femail'] ?? '';
-  $wachtwoord = $_POST['fwachtwoord'] ?? '';
 
-  header("Location: homepaginaphp.php"); //https://www.w3schools.com/php/func_network_header.asp
-  exit();
-} 
+<?php
+session_start();
+//  https://www.w3schools.com/php/php_mysql_connect.asp
+$servername = "localhost";
+$username = "root";       
+$password = "";         
+$dbname = "po_webapp";         
+
+// Maak verbinding
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Controleer verbinding
+if ($conn->connect_error) {
+  die("Verbinding mislukt: " . $conn->connect_error);
+};
+
+// ✅ Start sessie zodat we weten welke gebruiker is ingelogd
+if (!isset($_SESSION['user_id'])) {
+    die("⚠️ Je moet eerst inloggen.");
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $name = $_POST['fname'] ?? '';
+  $lastname = $_POST['lastname'] ?? '';
+}
+
+// Simpele validatie
+if (!empty($name) && !empty($lastname)) {
+    $userId = $_SESSION['user_id']; // user_id uit sessie
+
+    // ✅ Haal email (username) van de ingelogde gebruiker op
+    $stmtEmail = $conn->prepare("SELECT username FROM users WHERE id = ?");
+    $stmtEmail->bind_param("i", $userId);
+    $stmtEmail->execute();
+    $result = $stmtEmail->get_result();
+    $row = $result->fetch_assoc();
+    $email = $row['username']; // hier gebruik je username als email
+    $stmtEmail->close();
+
+    // Prepared statement om SQL-injectie te voorkomen
+    // ✅ Nu voegen we firstname, lastname, email én user_id toe
+    $stmt = $conn->prepare("INSERT INTO userinfo (firstname, lastname, email, user_id) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("sssi", $name, $lastname, $email, $userId);
+
+    if ($stmt->execute()) {
+      
+
+      header("Location: homepaginaphp.php");
+      exit();
+
+        echo "✅ informatie succesvol toegevoegd!";
+        header("Location: homepaginaphp.php");
+        exit();
+    } else {
+        echo "❌ Fout bij toevoegen: " . $stmt->error;
+    }
+
+    $stmt->close();
+} else {
+    echo "⚠️ Vul zowel de velden in.";
+}
+
+$conn->close();
 ?>
 </body>
 </html>

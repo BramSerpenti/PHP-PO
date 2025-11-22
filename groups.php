@@ -85,7 +85,7 @@
     <input type="text" id="ftitel" placeholder="Titel..."><br>
 
     <label for="groupFriends">Invite Friends:</label><br>
-    <select id="groupFriends" multiple size="4">
+    <select id="groupFriends" name= "groupFriends[]" multiple size="4">
       <option value="1">Friend 1</option>
       <option value="2">Friend 2</option>
       <option value="3">Friend 3</option>

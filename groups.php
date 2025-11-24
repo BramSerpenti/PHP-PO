@@ -59,6 +59,20 @@
   </style>
 </head>
 <body>
+<?php
+session_start();
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "po_webapp";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+  die("Verbinding mislukt: " . $conn->connect_error);
+}
+?>
 
 <div class="sidebar">
   <h1>PlanIt</h1>
@@ -82,22 +96,19 @@
   <div class="popup">
     <h2>New Group</h2>
     <label for="ftitel">Titel</label>
-    <input type="text" id="ftitel" placeholder="Titel..."><br>
+    <input type="text" id="fgrouptitel" name="fgrouptitel"fplaceholder="Titel..."><br>
 
-    <label for="groupFriends">Invite Friends:</label><br>
-    <select id="groupFriends" name= "groupFriends[]" multiple size="4">
-      <option value="1">Friend 1</option>
-      <option value="2">Friend 2</option>
-      <option value="3">Friend 3</option>
-      <option value="4">Friend 4</option>
-    </select><br><br>
+    <label>Invite Friends:</label><br>
+<input type="checkbox" name="leden[]" value="1"> Friend 1<br>
+<input type="checkbox" name="leden[]" value="2"> Friend 2<br>
+<input type="checkbox" name="leden[]" value="3"> Friend 3<br>
+<input type="checkbox" name="leden[]" value="4"> Friend 4<br>
 
-    <label for="groupTeachers">Invite Teachers:</label><br>
-    <select id="groupTeachers" multiple size="3">
-      <option value="1">Teacher 1</option>
-      <option value="2">Teacher 2</option>
-      <option value="3">Teacher 3</option>
-    </select><br><br>
+    <label>Invite Friends:</label><br>
+<input type="checkbox" name="groupTeachers[]" value="1"> Teacher 1<br>
+<input type="checkbox" name="groupTeachers[]" value="2"> Teacher 2<br>
+<input type="checkbox" name="groupTheachers[]" value="3"> Teacher 3<br>
+<input type="checkbox" name="groupTheachers[]" value="4"> Teacher 4<br>
 
     <button class="btn" onclick="addElement()">Make</button>
     <button class="close-btn" onclick="closePopup()">❌ Sluiten</button>
@@ -171,18 +182,21 @@ function addElement() {
   newTaskButton.onclick = () => openTaskPopup(newDiv);
   newDiv.appendChild(newTaskButton);
 
-  // Meerdere friends/teachers opslaan
-  const selectedFriends = Array.from(document.getElementById("groupFriends").selectedOptions).map(opt => opt.textContent);
-  const selectedTeachers = Array.from(document.getElementById("groupTeachers").selectedOptions).map(opt => opt.textContent);
-  newDiv.dataset.friends = selectedFriends.join(", ");
-  newDiv.dataset.teachers = selectedTeachers.join(", ");
+  // ✅ Alle aangevinkte checkboxes ophalen
+  const selectedFriends = Array.from(document.querySelectorAll('input[name="groupFriends[]"]:checked'))
+                               .map(cb => cb.nextSibling.textContent.trim());
+  const selectedTeachers = Array.from(document.querySelectorAll('input[name="groupTeachers[]"]:checked'))
+                                .map(cb => cb.nextSibling.textContent.trim());
+
+  newDiv.dataset.friends = selectedFriends.join(", ") || "None";
+  newDiv.dataset.teachers = selectedTeachers.join(", ") || "None";
 
   document.querySelector(".cards").appendChild(newDiv);
 
   // Velden resetten
   document.getElementById("ftitel").value = "";
-  document.getElementById("groupFriends").selectedIndex = -1;
-  document.getElementById("groupTeachers").selectedIndex = -1;
+  document.querySelectorAll('input[name="groupFriends[]"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="groupTeachers[]"]').forEach(cb => cb.checked = false);
 
   closePopup();
 }
@@ -256,6 +270,22 @@ function closeTaskDetail() {
   document.getElementById('taskDetailOverlay').style.display = 'none';
 }
 </script>
+
+
+
+<?php
+// https://www.w3schools.com/php/php_mysql_insert.asp en https://www.tutorialrepublic.com/php-tutorial/php-mysql-login-system.php en https://stackoverflow.com/questions/41440464/prepared-statements-checking-if-row-exists
+
+// Verwerk formulier alleen als het is verzonden
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $grouptitel = $_POST['fgrouptitel'] ?? '';
+  $leden = $_POST['leden'] ?? [];
+}
+
+
+
+
+?> 
 
 </body>
 </html>

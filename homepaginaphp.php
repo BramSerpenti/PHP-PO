@@ -1,3 +1,8 @@
+<?php
+// Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
+session_start(); 
+?>
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -39,7 +44,13 @@
     <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
     <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> <!-- https://emojipedia.org/busts-in-silhouette -->
     <a href = Settings.php> <div class="nav-item">⚙️ Settings</div></a>
-    <a href = login.php><div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">👤 Login</div></a>
+    <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
+    <a href="login.php">
+        <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
+            👤 Login
+        </div>
+    </a>
+<?php endif; ?>
   </div>
 
   <div class="main">

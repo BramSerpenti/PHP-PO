@@ -1,3 +1,15 @@
+<?php
+// Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
+session_start();
+// controleert of je bent ingelogd. hulp gehad van copilet om de code van https://www.w3schools.com/php/php_sessions.asp zo aan te passen dat het hierbij past
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("Location: login.php");
+    exit;
+};
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -60,7 +72,10 @@
 </head>
 <body>
 <?php
-session_start();
+
+$_SESSION["id"];
+$_SESSION["username"];
+
 
 $servername = "localhost";
 $username = "root";
@@ -74,6 +89,67 @@ if ($conn->connect_error) {
 }
 ?>
 
+<?php
+// https://www.w3schools.com/php/php_mysql_insert.asp en https://www.tutorialrepublic.com/php-tutorial/php-mysql-login-system.php en https://stackoverflow.com/questions/41440464/prepared-statements-checking-if-row-exists
+
+// https://www.w3schools.com/php/php_looping_foreach.asp  
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+     if ($_POST['type'] === 'group') {
+
+    $leden = $_POST['leden'] ?? [];
+    $teachers = $_POST['groupTeachers'] ?? [];
+    $titel = $_POST['grouptitel'] ?? '';
+
+    // Groep opslaan
+    $stmt = $conn->prepare("INSERT INTO groups (titel) VALUES (?)");
+    $stmt->bind_param("s", $titel);
+    $stmt->execute();
+    $group_id = $stmt->insert_id;
+    // Voeg de maker van de groep toe als lid
+    $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
+    $stmt->bind_param("ii", $group_id, $_SESSION["id"]);
+    $stmt->execute();
+
+
+    // Leden opslaan
+    foreach ($leden as $lid) {
+        $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $group_id, $lid);
+        $stmt->execute();
+    }
+
+    // Teachers opslaan
+    foreach ($teachers as $teacher) {
+        $stmt = $conn->prepare("INSERT INTO group_teachers (group_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $group_id, $teacher);
+        $stmt->execute();
+    }
+    header("Location: groups.php");
+    exit;
+
+}
+    if ($_POST['type'] === 'task') {
+ //taken opslaan
+   $titeltaak = $_POST['taaktitel'] ?? '';
+   $om = $_POST['taakom'] ?? '';
+   $deadline = $_POST['taakdeadline'] ?? '';
+   $group_id = $_POST['group_id'] ?? null;
+
+
+    $stmt = $conn->prepare("INSERT INTO todo (titel, info, datum, group_id) VALUES (?,?,?,?)");
+    $stmt->bind_param("sssi", $titeltaak, $om, $deadline, $group_id);
+    $stmt->execute();
+    $taakid = $stmt->insert_id;
+
+
+}
+}
+
+  
+
+
+?>
+
 <div class="sidebar">
   <h1>PlanIt</h1>
   <a href="homepaginaphp.php"><div class="nav-item">🏠 Home</div></a>
@@ -81,22 +157,68 @@ if ($conn->connect_error) {
   <a href="Tasks.php"><div class="nav-item">📃 My Tasks</div></a>
   <a href="Friends.php"><div class="nav-item">👥 Friends & Teachers</div></a>
   <a href="Settings.php"><div class="nav-item">⚙️ Settings</div></a>
-  <a href="login.php"><div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">👤 Login</div></a>
+  <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
+    <a href="login.php">
+        <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
+            👤 Login
+        </div>
+    </a>
+<?php endif; ?>
 </div>
 
 <div class="main">
   <div class="header">Groups</div>
   <button class="btn" style="float: right;" onclick="openPopup()">New Group</button>
 
-  <div class="cards"></div>
+  <div class="cards">
+<?php
+$user_id = $_SESSION["id"];
+
+// https://www.w3schools.com/sql/sql_join.asp en met behulp van copilet verfijnt.
+$stmt = $conn->prepare("
+    SELECT g.*
+    FROM groups g
+    JOIN group_members gm ON g.id = gm.group_id
+    WHERE gm.user_id = ?
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+    echo '<div class="card" data-group-id="' . $row["id"] . '">';
+    echo '<h3>' . htmlspecialchars($row["titel"]) . '</h3>';
+    echo '<div class="task-buttons">';
+
+// Taken ophalen voor deze groep
+$groupId = $row["id"];
+$stmt2 = $conn->prepare("SELECT * FROM todo WHERE group_id = ?");
+$stmt2->bind_param("i", $groupId);
+$stmt2->execute();
+$tasks = $stmt2->get_result();
+
+while ($task = $tasks->fetch_assoc()) {
+    echo '<div class="task">' . htmlspecialchars($task["titel"]) . '</div>';
+}
+
+echo '</div>';
+    echo '<button class="btn" onclick="openTaskPopup(this.parentNode)">Nieuwe Taak</button>';
+    echo '</div>';
+}
+?>
 </div>
 
-<!-- Nieuwe Group Popup -->
+</div>
+
+
+<form method="POST" action="groups.php">
+  <input type="hidden" name="type" value="group">
+
 <div class="overlay" id="popupOverlay">
   <div class="popup">
     <h2>New Group</h2>
     <label for="ftitel">Titel</label>
-    <input type="text" id="fgrouptitel" name="fgrouptitel"fplaceholder="Titel..."><br>
+    <input type="text" id="grouptitel" name="grouptitel" placeholder="Titel..."><br>
 
     <label>Invite Friends:</label><br>
 <input type="checkbox" name="leden[]" value="1"> Friend 1<br>
@@ -104,28 +226,42 @@ if ($conn->connect_error) {
 <input type="checkbox" name="leden[]" value="3"> Friend 3<br>
 <input type="checkbox" name="leden[]" value="4"> Friend 4<br>
 
-    <label>Invite Friends:</label><br>
+    <label>Invite Teachers:</label><br>
 <input type="checkbox" name="groupTeachers[]" value="1"> Teacher 1<br>
 <input type="checkbox" name="groupTeachers[]" value="2"> Teacher 2<br>
-<input type="checkbox" name="groupTheachers[]" value="3"> Teacher 3<br>
-<input type="checkbox" name="groupTheachers[]" value="4"> Teacher 4<br>
+<input type="checkbox" name="groupTeachers[]" value="3"> Teacher 3<br>
+<input type="checkbox" name="groupTeachers[]" value="4"> Teacher 4<br>
 
-    <button class="btn" onclick="addElement()">Make</button>
+
+    <button type="submit" class="btn" onclick="addElement()">Make</button>
+
     <button class="close-btn" onclick="closePopup()">❌ Sluiten</button>
   </div>
 </div>
+</form>
 
 <!-- Task Popup -->
+ <form method="POST" action="groups.php">
+  <input type="hidden" name="type" value="task">
+  <input type="hidden" name="group_id" id="group_id">
+
 <div class="overlay" id="taskPopupOverlay">
   <div class="popup">
     <h2>Nieuwe Taak</h2>
-    <input type="text" id="taskTitle" placeholder="Titel van taak"><br>
-    <input type="text" id="taskDescription" placeholder="Omschrijving"><br>
-    <input type="date" id="taskDeadline"><br><br>
-    <button class="btn" onclick="createTask()">Toevoegen</button>
+    <input type="text" name = 'taaktitel'id="taaktitel" placeholder="Titel van taak"><br>
+    <input type="text" name = "taakom" id="taakom" placeholder="Omschrijving"><br>
+    <input type="date" name="taakdeadline" id="taakdeadline"><br>
+     <label>verdeel taak</label><br>
+<input type="checkbox" name="leden[]" value="1"> Friend 1<br>
+<input type="checkbox" name="leden[]" value="2"> Friend 2<br>
+<input type="checkbox" name="leden[]" value="3"> Friend 3<br>
+<input type="checkbox" name="leden[]" value="4"> Friend 4<br><br>
+
+    <button type="submit" class="btn" onclick="createTask()">Toevoegen</button>
     <button class="close-btn" onclick="closeTaskPopup()">Sluiten</button>
   </div>
 </div>
+</form>
 
 <!-- Task Detail Popup -->
 <div class="overlay" id="taskDetailOverlay">
@@ -160,60 +296,9 @@ function closePopup() {
   document.getElementById('popupOverlay').style.display = 'none';
 }
 
-/* --- Group toevoegen --- */
-function addElement() {
-  const titel = document.getElementById("ftitel").value || "Nieuwe Groep";
 
-  const newDiv = document.createElement("div");
-  newDiv.className = "card";
 
-  const newTitle = document.createElement("h3");
-  newTitle.textContent = titel;
-  newTitle.onclick = () => openGroupDetail(newDiv);
-  newDiv.appendChild(newTitle);
 
-  const taskButtons = document.createElement("div");
-  taskButtons.className = "task-buttons";
-  newDiv.appendChild(taskButtons);
-
-  const newTaskButton = document.createElement("button");
-  newTaskButton.className = "btn";
-  newTaskButton.textContent = "Nieuwe Taak";
-  newTaskButton.onclick = () => openTaskPopup(newDiv);
-  newDiv.appendChild(newTaskButton);
-
-  // ✅ Alle aangevinkte checkboxes ophalen
-  const selectedFriends = Array.from(document.querySelectorAll('input[name="groupFriends[]"]:checked'))
-                               .map(cb => cb.nextSibling.textContent.trim());
-  const selectedTeachers = Array.from(document.querySelectorAll('input[name="groupTeachers[]"]:checked'))
-                                .map(cb => cb.nextSibling.textContent.trim());
-
-  newDiv.dataset.friends = selectedFriends.join(", ") || "None";
-  newDiv.dataset.teachers = selectedTeachers.join(", ") || "None";
-
-  document.querySelector(".cards").appendChild(newDiv);
-
-  // Velden resetten
-  document.getElementById("ftitel").value = "";
-  document.querySelectorAll('input[name="groupFriends[]"]').forEach(cb => cb.checked = false);
-  document.querySelectorAll('input[name="groupTeachers[]"]').forEach(cb => cb.checked = false);
-
-  closePopup();
-}
-
-/* --- Group detail --- */
-function openGroupDetail(groupCard) {
-  currentGroupDetail = groupCard;
-  document.getElementById("GroupkDetailTitle").textContent = groupCard.querySelector("h3").textContent;
-  document.getElementById("GroupDetailDescription").textContent =
-    "Friends: " + (groupCard.dataset.friends || "None") + "\nTeachers: " + (groupCard.dataset.teachers || "None");
-  document.getElementById("groupDetailOverlay").style.display = "flex";
-}
-
-function closeGroupDetail() {
-  document.getElementById("groupDetailOverlay").style.display = "none";
-  currentGroupDetail = null;
-}
 
 function leaveGroup() {
   if (currentGroupDetail) currentGroupDetail.remove();
@@ -222,42 +307,25 @@ function leaveGroup() {
 
 /* --- Task popup --- */
 function openTaskPopup(groupCard) {
-  currentGroupCard = groupCard;
-  document.getElementById('taskPopupOverlay').style.display = 'flex';
+    currentGroupCard = groupCard;
+
+    // Haal group_id uit de kaart
+    const groupId = groupCard.getAttribute('data-group-id');
+
+    // Zet hem in het formulier
+    document.getElementById('group_id').value = groupId;
+
+    // Open popup
+    document.getElementById('taskPopupOverlay').style.display = 'flex';
 }
 function closeTaskPopup() {
   document.getElementById('taskPopupOverlay').style.display = 'none';
 }
 
 /* --- Task systeem --- */
-function createTask() {
-  const title = document.getElementById('taskTitle').value;
-  const description = document.getElementById('taskDescription').value;
-  const deadline = document.getElementById('taskDeadline').value;
-
-  if (!title || !currentGroupCard) return;
-
-  const taskDiv = document.createElement('div');
-  taskDiv.className = 'task';
-  taskDiv.textContent = title;
-  taskDiv.onclick = () => {
-    document.getElementById('taskDetailTitle').textContent = title;
-    document.getElementById('taskDetailDescription').textContent = description;
-    document.getElementById('taskDetailDeadline').textContent = deadline;
-    document.getElementById('taskDetailOverlay').style.display = 'flex';
-    taskDiv.dataset.finished = "false";
-  };
-
-  currentGroupCard.querySelector('.task-buttons').appendChild(taskDiv);
-
-  document.getElementById('taskTitle').value = "";
-  document.getElementById('taskDescription').value = "";
-  document.getElementById('taskDeadline').value = "";
-  closeTaskPopup();
-}
 
 function finishTask() {
-  const title = document.getElementById('taskDetailTitle').textContent;
+  let title = document.getElementById('taskDetailTitle').textContent;
   document.querySelectorAll('.task').forEach(task => {
     if (task.textContent === title && task.dataset.finished === "false") {
       task.style.textDecoration = 'line-through';
@@ -273,19 +341,12 @@ function closeTaskDetail() {
 
 
 
-<?php
-// https://www.w3schools.com/php/php_mysql_insert.asp en https://www.tutorialrepublic.com/php-tutorial/php-mysql-login-system.php en https://stackoverflow.com/questions/41440464/prepared-statements-checking-if-row-exists
 
-// Verwerk formulier alleen als het is verzonden
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  $grouptitel = $_POST['fgrouptitel'] ?? '';
-  $leden = $_POST['leden'] ?? [];
-}
+  
 
 
 
 
-?> 
 
 </body>
 </html>

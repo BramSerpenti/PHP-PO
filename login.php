@@ -143,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo "<div class= 'error-box'>❌ Ongeldig wachtwoord.</div>";
       }
     } else {
-      echo '<div class="error-box">❌ Geen account gevonden met deze gebruikersnaam.</div>';
+      echo '<div class="error-box">❌ Geen account gevonden met deze email.</div>';
 
     }
 

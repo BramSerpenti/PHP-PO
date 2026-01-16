@@ -2,10 +2,11 @@
 // Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
 session_start();
 // controleert of je bent ingelogd. hulp gehad van copilet om de code van https://www.w3schools.com/php/php_sessions.asp zo aan te passen dat het hierbij past
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("Location: login.php");
+if (!isset($_SESSION["id"])) {
+     header("Location: login.php");
     exit;
-};
+}
+
 ?>
 
 
@@ -37,10 +38,44 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     .task-buttons {
       margin-top: 20px;
     }
-   
+       body.dark {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+}
+
+body.dark .card {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+}
+
+body.dark input,
+body.dark button {
+  background-color: #444;
+  color: #f0f0f0;
+  border: 1px solid #666;
+}
+
+body.dark .sidebar {
+  background-color: #111;
+  color: #f0f0f0;
+}
+
+body.dark .sidebar .nav-item {
+  color: #f0f0f0;
+}
+
+body.dark .sidebar .nav-item:hover {
+  background-color: #222;
+}
+
+body.dark .sidebar a {
+  color: #f0f0f0;
+}
+
   </style>
 </head>
-<body>
+<body <?php if (!empty($_SESSION["dark_mode"])) echo 'class="dark"'; ?>>
+
   <div class="sidebar">
     <h1>PlanIt</h1>
 

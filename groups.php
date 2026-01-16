@@ -2,10 +2,12 @@
 // Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
 session_start();
 // controleert of je bent ingelogd. hulp gehad van copilet om de code van https://www.w3schools.com/php/php_sessions.asp zo aan te passen dat het hierbij past
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("Location: login.php");
+if (!isset($_SESSION["id"])) {
+     header("Location: login.php");
     exit;
-};
+}
+$user_id = $_SESSION["id"];
+
 ?>
 
 
@@ -67,10 +69,90 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
       width: 300px;
       max-width: 90%;
     }
+
+    body.dark {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+}
+
+body.dark .card {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+}
+
+body.dark input,
+body.dark button {
+  background-color: #444;
+  color: #f0f0f0;
+  border: 1px solid #666;
+}
+
+body.dark .sidebar {
+  background-color: #111;
+  color: #f0f0f0;
+}
+
+body.dark .sidebar .nav-item {
+  color: #f0f0f0;
+}
+
+body.dark .sidebar .nav-item:hover {
+  background-color: #222;
+}
+
+body.dark .sidebar a {
+  color: #f0f0f0;
+}
+/* Groepstitel en taken */
+body.dark .task {
+  background-color: #244376;
+  color: #f0f0f0;
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+body.dark .task:hover {
+  background-color: #3a5a8c;
+}
+
+/* Header en main */
+body.dark .header {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+  padding: 10px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+body.dark .main {
+  background-color: #1e1e1e;
+}
+
+/* Popups */
+body.dark .popup {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+}
+
+body.dark .popup input,
+body.dark .popup button {
+  background-color: #444;
+  color: #f0f0f0;
+  border: 1px solid #666;
+}
+
+/* Overlay transparantie blijft hetzelfde */
+body.dark .overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
     
   </style>
 </head>
-<body>
+<body <?php if (!empty($_SESSION["dark_mode"])) echo 'class="dark"'; ?>>
+
 <?php
 
 $_SESSION["id"];
@@ -143,6 +225,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 }
+if ($_POST['type'] === 'leave_group') {
+    $group_id = $_POST['group_id'];
+    $user_id = $_SESSION['id'];
+
+    // Verwijder uit members
+    $stmt = $conn->prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $group_id, $user_id);
+    $stmt->execute();
+
+    // Verwijder uit teachers
+    $stmt = $conn->prepare("DELETE FROM group_teachers WHERE group_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $group_id, $user_id);
+    $stmt->execute();
+
+    header("Location: groups.php");
+    exit;
+}
+
+
 }
 
   
@@ -186,8 +287,12 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-    echo '<div class="card" data-group-id="' . $row["id"] . '">';
-    echo '<h3>' . htmlspecialchars($row["titel"]) . '</h3>';
+ echo '<div class="card" 
+        data-group-id="' . $row["id"] . '" 
+        data-group-title="' . htmlspecialchars($row["titel"]) . '"
+      >';
+
+echo '<h3 onclick="openGroupDetail(this)">' . htmlspecialchars($row["titel"]) . '</h3>';
     echo '<div class="task-buttons">';
 
 // Taken ophalen voor deze groep
@@ -197,11 +302,20 @@ $stmt2->bind_param("i", $groupId);
 $stmt2->execute();
 $tasks = $stmt2->get_result();
 
-while ($task = $tasks->fetch_assoc()) {
-    echo '<div class="task">' . htmlspecialchars($task["titel"]) . '</div>';
+if ($tasks->num_rows > 0) {
+    while ($task = $tasks->fetch_assoc()) {
+        echo '<div class="task"
+                data-id="' . $task["taakid"] . '"
+                data-title="' . htmlspecialchars($task["titel"]) . '"
+                data-info="' . htmlspecialchars($task["info"]) . '"
+                data-deadline="' . htmlspecialchars($task["datum"]) . '"
+                onclick="openTaskDetail(this)"
+              >' . htmlspecialchars($task["titel"]) . '</div>';
+    }
 }
 
-echo '</div>';
+
+    echo '</div>';
     echo '<button class="btn" onclick="openTaskPopup(this.parentNode)">Nieuwe Taak</button>';
     echo '</div>';
 }
@@ -258,7 +372,8 @@ echo '</div>';
 <input type="checkbox" name="leden[]" value="4"> Friend 4<br><br>
 
     <button type="submit" class="btn" onclick="createTask()">Toevoegen</button>
-    <button class="close-btn" onclick="closeTaskPopup()">Sluiten</button>
+    <button type="button" class="close-btn" onclick="closeTaskPopup()">Sluiten</button>
+
   </div>
 </div>
 </form>
@@ -279,10 +394,19 @@ echo '</div>';
   <div class="popup">
     <h2 id="GroupkDetailTitle"></h2>
     <p id="GroupDetailDescription"></p>
+    
     <button class="close-btn" onclick="leaveGroup()">❌ Leave Group</button>
     <button class="close-btn" onclick="closeGroupDetail()">Sluiten</button>
   </div>
 </div>
+<form id="leaveGroupForm" method="POST" action="groups.php" style="display:none;">
+    <input type="hidden" name="type" value="leave_group">
+    <input type="hidden" name="group_id" id="leave_group_id">
+</form>
+
+
+
+
 
 <script>
 let currentGroupCard = null;
@@ -301,9 +425,12 @@ function closePopup() {
 
 
 function leaveGroup() {
-  if (currentGroupDetail) currentGroupDetail.remove();
-  closeGroupDetail();
+    let groupId = currentGroupDetail.getAttribute('data-group-id');
+    document.getElementById('leave_group_id').value = groupId;
+
+    document.getElementById('leaveGroupForm').submit();
 }
+
 
 /* --- Task popup --- */
 function openTaskPopup(groupCard) {
@@ -322,21 +449,45 @@ function closeTaskPopup() {
   document.getElementById('taskPopupOverlay').style.display = 'none';
 }
 
-/* --- Task systeem --- */
 
+
+
+function openGroupDetail(el) {
+    let card = el.closest('.card');
+    let title = card.dataset.groupTitle;
+    let groupId = card.dataset.groupId;
+
+    document.getElementById('GroupkDetailTitle').textContent = title;
+    document.getElementById('GroupDetailDescription').textContent = "Group ID: " + groupId;
+    document.getElementById('groupDetailOverlay').style.display = 'flex';
+
+    currentGroupDetail = card;
+}
+
+function closeGroupDetail() {
+    document.getElementById('groupDetailOverlay').style.display = 'none';
+}
+
+let currentTaskElement = null;
+
+function openTaskDetail(taskElement) {
+    currentTaskElement = taskElement;
+
+    document.getElementById('taskDetailTitle').textContent = taskElement.dataset.title;
+    document.getElementById('taskDetailDescription').textContent = taskElement.dataset.info || "Geen omschrijving";
+    document.getElementById('taskDetailDeadline').textContent = taskElement.dataset.deadline || "Geen deadline";
+
+    document.getElementById('taskDetailOverlay').style.display = 'flex';
+}
 function finishTask() {
-  let title = document.getElementById('taskDetailTitle').textContent;
-  document.querySelectorAll('.task').forEach(task => {
-    if (task.textContent === title && task.dataset.finished === "false") {
-      task.style.textDecoration = 'line-through';
-      task.dataset.finished = "true";
-    }
-  });
-  document.getElementById('taskDetailOverlay').style.display = 'none';
+    if (!currentTaskElement) return;
+
+    currentTaskElement.style.textDecoration = 'line-through';
+    currentTaskElement.style.opacity = '0.5';
+
+    document.getElementById('taskDetailOverlay').style.display = 'none';
 }
-function closeTaskDetail() {
-  document.getElementById('taskDetailOverlay').style.display = 'none';
-}
+
 </script>
 
 

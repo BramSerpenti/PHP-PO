@@ -7,6 +7,106 @@ if (!isset($_SESSION["id"])) {
     exit;
 }
 
+$currentUserId = $_SESSION['id'];
+
+ 
+
+$host = "localhost";
+
+$user="root";
+
+$pass = "";
+
+$dbname="po_webapp";
+
+ 
+
+$conn = new mysqli($host, $user, $pass, $dbname);
+
+if($conn->connect_error){
+
+    die("Connectie mislukt: " . $conn->connect_error);
+
+}
+
+ 
+
+// vriend toevoegen
+
+if (isset($_POST['add_friend'])) {
+
+    $email = $_POST['person2'];
+
+    $stmt = $conn->prepare("
+        SELECT u.id
+        FROM users u
+        JOIN userinfo ui ON u.id = ui.user_id
+        WHERE ui.email = ?
+    ");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    if ($res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+        $person2 = $row['id'];
+
+        $stmt2 = $conn->prepare("
+            INSERT INTO friends (person1, person2)
+            VALUES (?, ?)
+        ");
+        $stmt2->bind_param("ii", $currentUserId, $person2);
+        $stmt2->execute();
+    }
+
+    header("Location: Friends.php");
+    exit;
+}
+
+
+ 
+
+// vriend verwijderen
+
+if (isset($_POST['delete_friend'])) {
+
+    $friendid = intval($_POST['friendid']);
+
+    $stmt = $conn->prepare("
+        DELETE FROM friends
+        WHERE friendid = ? AND person1 = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("ii", $friendid, $currentUserId);
+    $stmt->execute();
+
+    header("Location: Friends.php");
+    exit;
+}
+
+
+ 
+
+// vrienden ophalen
+
+$friends = $conn->query("
+SELECT f.friendid, ui.firstname, ui.lastname, ui.email
+FROM friends f
+JOIN users u ON f.person2 = u.id
+JOIN userinfo ui ON u.id = ui.user_id
+WHERE f.person1 = $currentUserId
+");
+
+$teachers = $conn->query("
+SELECT f.friendid, ui.firstname, ui.lastname, ui.email
+FROM friends f
+JOIN users u ON f.person2 = u.id
+JOIN userinfo ui ON u.id = ui.user_id
+WHERE f.person1 = $currentUserId AND u.role = 'teacher'
+");
+
+
+
 ?>
 
 
@@ -72,43 +172,268 @@ body.dark .sidebar a {
   color: #f0f0f0;
 }
 
+ 
+
+table {
+
+width:100%;
+
+border-collapse:collapse;
+
+margin-top:15px;
+
+}
+
+ 
+
+th, td{
+
+border:1px solid #ddd;
+
+padding:10px;
+
+text-align:left;
+
+}
+
+ 
+
+th {
+
+background-color:#244376;
+
+color:white;
+
+}
+
+ 
+
+tr:nth-child(even){
+
+background-color:#f9f9f9;
+
+}
+
+ 
+
+button{
+
+background:#244376;
+
+color:white;
+
+border:none;
+
+padding:6px 12px;
+
+border-radius:5px;
+
+cursor:pointer;
+
+}
+
+ 
+
+button:hover { background:#1a3158; }
+
+ 
+
+input[type="text"]{
+
+padding:6px;
+
+margin-right:10px;
+
+border-radius:5px;
+
+border:1px solid #ccc;
+
+}
+
+ 
+
+.add-friend-form {
+
+margin-top:10px;
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+}
+
   </style>
 </head>
 <body <?php if (!empty($_SESSION["dark_mode"])) echo 'class="dark"'; ?>>
 
-  <div class="sidebar">
-    <h1>PlanIt</h1>
+ <div class="sidebar">
 
-    
-  <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
-    <a href = groups.php>   <div class="nav-item">⚡ Groups</div></a>
-    <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
-    <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> <!-- https://emojipedia.org/busts-in-silhouette -->
-    <a href = Settings.php> <div class="nav-item">⚙️ Settings</div></a>
-   <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
+<h1>PlanIt</h1>
+
+<a href="homepaginaphp.php"><div class="nav-item">🏠 Home</div></a>
+
+<a href="groups.php"><div class="nav-item">⚡ Groups</div></a>
+
+<a href="Tasks.php"><div class="nav-item">📃 My Tasks</div></a>
+
+<a href="Friends.php"><div class="nav-item">👥 Friends & Teachers</div></a>
+
+<a href="Settings.php"><div class="nav-item">⚙️ Settings</div></a>
+
+<?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
     <a href="login.php">
         <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
             👤 Login
         </div>
     </a>
 <?php endif; ?>
-  </div>
 
-  <div class="main">
-    <div class="header">Friends</div>
+</div>
+
+ 
+
+<div class="main">
+
+<div class="header">Friends</div>
+
+ 
+
+<div class="cards">
+ 
+
+<div class="card">
+
+<h3>Voeg een vriend toe</h3>
+
+<form method="POST" class="add-friend-form">
+
+<label>Email:</label>
+
+<input type="text" name="person2" required>
 
 
 
-    <div class="cards">
-      <div class="card">
-        <h3></h3>
-        <div class="task-buttons">
-            
-        </div>
-      </div>
+<button type="submit" name="add_friend">Toevoegen</button>
 
-      
-    </div>
-  </div>
+</form>
+
+</div>
+ 
+
+<div class="card">
+<h3>Mijn vrienden</h3>
+
+<?php if ($friends->num_rows > 0): ?>
+<table>
+<thead>
+<tr>
+<th>Voornaam</th>
+<th>Achternaam</th>
+<th>Email</th>
+<th>Actie</th>
+</tr>
+</thead>
+
+<tbody>
+<?php while($row = $friends->fetch_assoc()): ?>
+<tr>
+<td><?= htmlspecialchars($row['firstname']) ?></td>
+<td><?= htmlspecialchars($row['lastname']) ?></td>
+<td><?= htmlspecialchars($row['email']) ?></td>
+<td>
+    <form method="POST">
+        <input type="hidden" name="friendid" value="<?= $row['friendid'] ?>">
+        <button type="submit" name="delete_friend">Verwijderen</button>
+    </form>
+</td>
+</tr>
+<?php endwhile; ?>
+</tbody>
+</table>
+
+<?php else: ?>
+<p>Je hebt nog geen vrienden toegevoegd.</p>
+<?php endif; ?>
+
+</div>
+
+ 
+</div>
+<div class="main">
+
+<div class="header">Teachers</div>
+
+ 
+
+<div class="cards">
+<div class="card">
+
+<h3>Voeg een teacher toe</h3>
+
+<form method="POST" class="add-friend-form">
+
+<label>Email:</label>
+
+<input type="text" name="person2" required>
+
+
+
+<button type="submit" name="add_friend">Toevoegen</button>
+
+</form>
+
+</div>
+
+ 
+<div class="card">
+<h3>Mijn teachers</h3>
+
+<?php if ($teachers->num_rows > 0): ?>
+<table>
+<thead>
+<tr>
+<th>Voornaam</th>
+<th>Achternaam</th>
+<th>Email</th>
+<th>Actie</th>
+</tr>
+</thead>
+
+<tbody>
+<?php while($row = $teachers->fetch_assoc()): ?>
+<tr>
+<td><?= htmlspecialchars($row['firstname']) ?></td>
+<td><?= htmlspecialchars($row['lastname']) ?></td>
+<td><?= htmlspecialchars($row['email']) ?></td>
+<td>
+    <form method="POST">
+        <input type="hidden" name="friendid" value="<?= $row['friendid'] ?>">
+        <button type="submit" name="delete_friend">Verwijderen</button>
+    </form>
+</td>
+</tr>
+<?php endwhile; ?>
+</tbody>
+</table>
+
+<?php else: ?>
+<p>Je hebt nog geen teachers toegevoegd.</p>
+<?php endif; ?>
+
+</div>
+
+ 
+
+
+
+</div>
+</div>
+
+
+ 
+
 </body>
+
 </html>

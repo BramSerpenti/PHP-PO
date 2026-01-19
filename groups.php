@@ -216,12 +216,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
    $om = $_POST['taakom'] ?? '';
    $deadline = $_POST['taakdeadline'] ?? '';
    $group_id = $_POST['group_id'] ?? null;
+  $personen = $_POST['persoon'] ?? [];
 
-
-    $stmt = $conn->prepare("INSERT INTO todo (titel, info, datum, group_id) VALUES (?,?,?,?)");
-    $stmt->bind_param("sssi", $titeltaak, $om, $deadline, $group_id);
+foreach ($personen as $persoon) {
+    $stmt = $conn->prepare("INSERT INTO todo (titel, info, datum, group_id, person) VALUES (?,?,?,?,?)");
+    $stmt->bind_param("sssii", $titeltaak, $om, $deadline, $group_id, $persoon);
     $stmt->execute();
-    $taakid = $stmt->insert_id;
+}
 
 
 }
@@ -243,10 +244,49 @@ if ($_POST['type'] === 'leave_group') {
     exit;
 }
 
+if ($_POST['type'] === 'delete_task') {
+    $task_id = $_POST['task_id'];
+
+    $stmt = $conn->prepare("DELETE FROM todo WHERE taakid = ?");
+    $stmt->bind_param("i", $task_id);
+    $stmt->execute();
+
+    header("Location: groups.php");
+    exit;
+}
+
 
 }
 
-  
+$currentUserId = $_SESSION['id'];
+
+
+
+// vrienden ophalen uit tabel
+$stmtFriends = $conn->prepare("
+    SELECT f.friendid, u.id AS user_id, ui.firstname, ui.lastname, ui.email, u.role
+    FROM friends f
+    JOIN users u ON f.person2 = u.id
+    JOIN userinfo ui ON u.id = ui.user_id
+    WHERE f.person1 = ?
+");
+$stmtFriends->bind_param("i", $currentUserId);
+$stmtFriends->execute();
+$friendsResult = $stmtFriends->get_result();
+//docenten ophalen uit tabel
+$stmtTeachers = $conn->prepare("
+    SELECT f.friendid, u.id AS user_id, ui.firstname, ui.lastname, ui.email
+    FROM friends f
+    JOIN users u ON f.person2 = u.id
+    JOIN userinfo ui ON u.id = ui.user_id
+    WHERE f.person1 = ? AND u.role = 'teacher'
+");
+$stmtTeachers->bind_param("i", $currentUserId);
+$stmtTeachers->execute();
+$teachersResult = $stmtTeachers->get_result();
+
+
+
 
 
 ?>
@@ -334,17 +374,33 @@ if ($tasks->num_rows > 0) {
     <label for="ftitel">Titel</label>
     <input type="text" id="grouptitel" name="grouptitel" placeholder="Titel..."><br>
 
-    <label>Invite Friends:</label><br>
-<input type="checkbox" name="leden[]" value="1"> Friend 1<br>
-<input type="checkbox" name="leden[]" value="2"> Friend 2<br>
-<input type="checkbox" name="leden[]" value="3"> Friend 3<br>
-<input type="checkbox" name="leden[]" value="4"> Friend 4<br>
+<label>Invite Friends:</label><br>
+<?php if ($friendsResult->num_rows > 0): ?>
+    <?php while ($f = $friendsResult->fetch_assoc()): ?>
+        <?php if ($f['role'] !== 'teacher'): // alleen niet-teachers als 'friends' ?>
+            <input type="checkbox" 
+                   name="leden[]" 
+                   value="<?= htmlspecialchars($f['user_id']) ?>">
+            <?= htmlspecialchars($f['firstname'] . ' ' . $f['lastname']) ?>
+            (<?= htmlspecialchars($f['email']) ?>)<br>
+        <?php endif; ?>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p>Je hebt nog geen vrienden om uit te nodigen.</p>
+<?php endif; ?>
 
-    <label>Invite Teachers:</label><br>
-<input type="checkbox" name="groupTeachers[]" value="1"> Teacher 1<br>
-<input type="checkbox" name="groupTeachers[]" value="2"> Teacher 2<br>
-<input type="checkbox" name="groupTeachers[]" value="3"> Teacher 3<br>
-<input type="checkbox" name="groupTeachers[]" value="4"> Teacher 4<br>
+<label>Invite Teachers:</label><br>
+<?php if ($teachersResult->num_rows > 0): ?>
+    <?php while ($t = $teachersResult->fetch_assoc()): ?>
+        <input type="checkbox" 
+               name="groupTeachers[]" 
+               value="<?= htmlspecialchars($t['user_id']) ?>">
+        <?= htmlspecialchars($t['firstname'] . ' ' . $t['lastname']) ?>
+        (<?= htmlspecialchars($t['email']) ?>)<br>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p>Je hebt nog geen teachers om uit te nodigen.</p>
+<?php endif; ?>
 
 
     <button type="submit" class="btn" onclick="addElement()">Make</button>
@@ -365,11 +421,32 @@ if ($tasks->num_rows > 0) {
     <input type="text" name = 'taaktitel'id="taaktitel" placeholder="Titel van taak"><br>
     <input type="text" name = "taakom" id="taakom" placeholder="Omschrijving"><br>
     <input type="date" name="taakdeadline" id="taakdeadline"><br>
-     <label>verdeel taak</label><br>
-<input type="checkbox" name="leden[]" value="1"> Friend 1<br>
-<input type="checkbox" name="leden[]" value="2"> Friend 2<br>
-<input type="checkbox" name="leden[]" value="3"> Friend 3<br>
-<input type="checkbox" name="leden[]" value="4"> Friend 4<br><br>
+    <label>Verdeel taak:</label><br>
+<?php
+
+$stmtFriends2 = $conn->prepare("
+    SELECT f.friendid, u.id AS user_id, ui.firstname, ui.lastname, ui.email, u.role
+    FROM friends f
+    JOIN users u ON f.person2 = u.id
+    JOIN userinfo ui ON u.id = ui.user_id
+    WHERE f.person1 = ?
+");
+$stmtFriends2->bind_param("i", $currentUserId);
+$stmtFriends2->execute();
+$friendsResult2 = $stmtFriends2->get_result();
+?>
+
+<?php if ($friendsResult2->num_rows > 0): ?>
+    <?php while ($f = $friendsResult2->fetch_assoc()): ?>
+        <input type="checkbox" 
+               name="persoon[]" 
+               value="<?= htmlspecialchars($f['user_id']) ?>">
+        <?= htmlspecialchars($f['firstname'] . ' ' . $f['lastname']) ?>
+        (<?= htmlspecialchars($f['email']) ?>)<br>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p>Je hebt nog geen vrienden om taken aan toe te wijzen.</p>
+<?php endif; ?>
 
     <button type="submit" class="btn" onclick="createTask()">Toevoegen</button>
     <button type="button" class="close-btn" onclick="closeTaskPopup()">Sluiten</button>
@@ -404,7 +481,11 @@ if ($tasks->num_rows > 0) {
     <input type="hidden" name="group_id" id="leave_group_id">
 </form>
 
-
+<!-- verwijder task --> 
+<form id="deleteTaskForm" method="POST" action="groups.php" style="display:none;">
+    <input type="hidden" name="type" value="delete_task">
+    <input type="hidden" name="task_id" id="delete_task_id">
+</form>
 
 
 
@@ -482,11 +563,16 @@ function openTaskDetail(taskElement) {
 function finishTask() {
     if (!currentTaskElement) return;
 
-    currentTaskElement.style.textDecoration = 'line-through';
-    currentTaskElement.style.opacity = '0.5';
+    // Haal taak-ID op uit de dataset
+    let taskId = currentTaskElement.dataset.id;
 
-    document.getElementById('taskDetailOverlay').style.display = 'none';
+    // Stop het ID in het verborgen formulier
+    document.getElementById('delete_task_id').value = taskId;
+
+    // Verstuur het formulier
+    document.getElementById('deleteTaskForm').submit();
 }
+
 
 </script>
 

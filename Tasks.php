@@ -70,44 +70,85 @@ body.dark .sidebar .nav-item:hover {
 body.dark .sidebar a {
   color: #f0f0f0;
 }
-
-  </style>
+</style>
 </head>
+<?php
+
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "po_webapp";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Verbinding mislukt: " . $conn->connect_error);
+}
+
+// Verwijder taak als formulier is ingediend
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['task_id'])) {
+    $taskId = $_POST['task_id'];
+    $userId = $_SESSION['id'];
+
+    $stmt = $conn->prepare("DELETE FROM todo WHERE taakid = ? AND person = ?");
+    $stmt->bind_param("ii", $taskId, $userId);
+    $stmt->execute();
+
+    header("Location: Tasks.php");
+    exit;
+}
+
+// Taken ophalen
+$userId = $_SESSION["id"];
+$stmt = $conn->prepare("
+    SELECT taakid, titel, info, datum
+    FROM todo
+    WHERE person = ?
+");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$tasks = $stmt->get_result();
+?>
+
+
 <body <?php if (!empty($_SESSION["dark_mode"])) echo 'class="dark"'; ?>>
 
-  <div class="sidebar">
-    <h1>PlanIt</h1>
-
-    
-  <a href = homepaginaphp.php>   <div class="nav-item">🏠 Home</div></a>
-    <a href = groups.php>   <div class="nav-item">⚡ Groups</div></a>
-    <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
-    <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> <!-- https://emojipedia.org/busts-in-silhouette -->
-    <a href = Settings.php> <div class="nav-item">⚙️ Settings</div></a>
-    <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
+<div class="sidebar">
+  <h1>PlanIt</h1>
+  <a href="homepaginaphp.php"><div class="nav-item">🏠 Home</div></a>
+  <a href="groups.php"><div class="nav-item">⚡ Groups</div></a>
+  <a href="Tasks.php"><div class="nav-item">📃 My Tasks</div></a>
+  <a href="Friends.php"><div class="nav-item">👥 Friends & Teachers</div></a>
+  <a href="Settings.php"><div class="nav-item">⚙️ Settings</div></a>
+  <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
     <a href="login.php">
-        <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
-            👤 Login
-        </div>
-    </a>
-<?php endif; ?>
-  </div>
-
-  <div class="main">
-    <div class="header">Tasks</div>
- 
-
-
-    <div class="cards">
-      <div class="card">
-        <h3></h3>
-        <div class="task-buttons">
-            
-        </div>
+      <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
+        👤 Login
       </div>
+    </a>
+  <?php endif; ?>
+</div>
 
-      
-    </div>
+<div class="main">
+  <div class="header">Tasks</div>
+  <div class="cards">
+    <?php if ($tasks->num_rows > 0): ?>
+      <?php while ($task = $tasks->fetch_assoc()): ?>
+        <div class="card">
+          <h3><?= htmlspecialchars($task['titel']) ?></h3>
+          <p><strong>Omschrijving:</strong><br><?= htmlspecialchars($task['info']) ?></p>
+          <p><strong>Deadline:</strong><br><?= htmlspecialchars($task['datum']) ?></p>
+          <form method="POST">
+            <input type="hidden" name="task_id" value="<?= $task['taakid'] ?>">
+            <button type="submit">Taak afronden</button>
+          </form>
+        </div>
+      <?php endwhile; ?>
+    <?php else: ?>
+      <p>Je hebt nog geen taken toegewezen gekregen.</p>
+    <?php endif; ?>
   </div>
+</div>
+
 </body>
 </html>

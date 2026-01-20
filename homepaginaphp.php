@@ -1,6 +1,44 @@
 <?php
-// Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
-session_start(); 
+session_start();
+if (!isset($_SESSION["id"])) {
+    header("Location: login.php");
+    exit;
+}
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "po_webapp";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Verbinding mislukt: " . $conn->connect_error);
+}
+
+$userId = $_SESSION["id"];
+
+// Taken ophalen
+$stmtTasks = $conn->prepare("
+    SELECT titel, datum 
+    FROM todo 
+    WHERE person = ?
+    ORDER BY datum ASC
+    LIMIT 5
+");
+$stmtTasks->bind_param("i", $userId);
+$stmtTasks->execute();
+$tasks = $stmtTasks->get_result();
+
+// Groepen ophalen
+$stmtGroups = $conn->prepare("
+    SELECT g.titel 
+    FROM groups g
+    JOIN group_members gm ON g.id = gm.group_id
+    WHERE gm.user_id = ?
+");
+$stmtGroups->bind_param("i", $userId);
+$stmtGroups->execute();
+$groups = $stmtGroups->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -22,6 +60,7 @@ session_start();
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       min-height: 200px;
+      margin: 10px;
     }
     .card h3 {
       margin-top: 0;
@@ -64,6 +103,12 @@ body.dark .sidebar .nav-item:hover {
 body.dark .sidebar a {
   color: #f0f0f0;
 }
+.card h3 {
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ccc;
+}
+
 
   </style>
 </head>
@@ -95,15 +140,47 @@ body.dark .sidebar a {
       <div class="card">
         <h3>📅 Deadlines</h3>
         <div class="task-buttons">
+    <?php if ($tasks->num_rows > 0): ?>
+        <?php while ($t = $tasks->fetch_assoc()): ?>
+            <p><strong><?= htmlspecialchars($t['titel']) ?></strong><br>
+            Deadline: <?= htmlspecialchars($t['datum']) ?></p>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <p>Geen deadlines 🎉</p>
+    <?php endif; ?>
+</div>
+
         </div>
       </div>
 
       <div class="card">
-        <h3>👥 Groups</h3>
+       <h3>👥 Groups</h3>
+<?php if ($groups->num_rows > 0): ?>
+    <?php while ($g = $groups->fetch_assoc()): ?>
+        <p><?= htmlspecialchars($g['titel']) ?></p>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p>Je zit nog in geen enkele groep.</p>
+<?php endif; ?>
+
       </div>
 
       <div class="card">
         <h3>📃 Tasks</h3>
+<?php
+// Zelfde query opnieuw uitvoeren omdat de eerste while-loop hem al heeft opgebruikt
+$stmtTasks->execute();
+$tasks = $stmtTasks->get_result();
+?>
+
+<?php if ($tasks->num_rows > 0): ?>
+    <?php while ($t = $tasks->fetch_assoc()): ?>
+        <p>• <?= htmlspecialchars($t['titel']) ?></p>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p>Geen taken toegewezen.</p>
+<?php endif; ?>
+
       </div>
     </div>
   </div>

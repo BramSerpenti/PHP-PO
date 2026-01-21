@@ -7,6 +7,7 @@ if (!isset($_SESSION["id"])) {
     exit;
 }
 
+
 ?>
 
 <!DOCTYPE html>
@@ -113,20 +114,31 @@ $tasks = $stmt->get_result();
 
 <body <?php if (!empty($_SESSION["dark_mode"])) echo 'class="dark"'; ?>>
 
+
 <div class="sidebar">
-  <h1>PlanIt</h1>
-  <a href="homepaginaphp.php"><div class="nav-item">🏠 Home</div></a>
-  <a href="groups.php"><div class="nav-item">⚡ Groups</div></a>
-  <a href="Tasks.php"><div class="nav-item">📃 My Tasks</div></a>
-  <a href="Friends.php"><div class="nav-item">👥 Friends & Teachers</div></a>
-  <a href="Settings.php"><div class="nav-item">⚙️ Settings</div></a>
-  <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
-    <a href="login.php">
-      <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;">
-        👤 Login
-      </div>
+    <h1>PlanIt</h1>
+<a href = homepaginaphp.php>
+       <div class="nav-item">🏠 Home</div></a> 
+       <a href = groups.php>   <div class="nav-item">⚡ Groups</div></a>
+        <a href = Tasks.php>   <div class="nav-item">📃 My Tasks</div></a>
+         <a href = Friends.php> <div class="nav-item">👥 Friends & Teachers</div></a> 
+           <?php if ($_SESSION["role"] == 2): ?>
+
+    <a href="teacher_dashboard.php">
+        <div class="nav-item">📘 Teacher Dashboard</div>
     </a>
-  <?php endif; ?>
+<?php endif; ?>
+
+         <!-- https://emojipedia.org/busts-in-silhouette --> 
+          <a href = Settings.php> <div class="nav-item">⚙️ Settings</div></a>
+           <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?> 
+            <a href="login.php">
+                 <div style="position:absolute; bottom:20px; left:20px; color:#244376; cursor:pointer;"> 👤 Login </div> </a>
+
+                 
+<?php endif; ?>
+
+
 </div>
 
 <div class="main">

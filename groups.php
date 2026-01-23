@@ -1,4 +1,5 @@
 <?php
+//https://www.w3schools.com/php/php_mysql_insert.asp
 // Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
 session_start();
 // controleert of je bent ingelogd. hulp gehad van copilet om de code van https://www.w3schools.com/php/php_sessions.asp zo aan te passen dat het hierbij past
@@ -374,7 +375,7 @@ if ($tasks->num_rows > 0) {
 
 </div>
 
-
+ <!-- https://www.w3schools.com/php/php_forms.asp -->
 <form method="POST" action="groups.php">
   <input type="hidden" name="type" value="group">
 
@@ -420,7 +421,7 @@ if ($tasks->num_rows > 0) {
 </div>
 </form>
 
-<!-- Task Popup -->
+<!-- https://www.w3schools.com/php/php_forms.asp -->
  <form method="POST" action="groups.php">
   <input type="hidden" name="type" value="task">
   <input type="hidden" name="group_id" id="group_id">

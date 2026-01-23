@@ -103,6 +103,7 @@
   </div>
   <a href = registeren.php><button class = btn id = btn>Registreren</button></a>
 <?php
+//https://www.w3schools.com/php/php_mysql_insert.asp
 session_start(); // Altijd bovenaan!
 
 $servername = "localhost";

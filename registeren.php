@@ -99,6 +99,7 @@
 </html>
 <!-- http://w3schools.com/php/php_forms.asp --> 
 <?php
+//https://www.w3schools.com/php/php_mysql_insert.asp
 session_start();
 //  https://www.w3schools.com/php/php_mysql_connect.asp
 $servername = "localhost";

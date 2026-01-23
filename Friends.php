@@ -1,4 +1,5 @@
 <?php
+//https://www.w3schools.com/php/php_mysql_insert.asp
 // Start the session, moet bovenaan om userinfo uit te lezen en alleen te laten zien waar iemand recht op heeft., https://www.w3schools.com/php/php_sessions.asp
 session_start();
 // controleert of je bent ingelogd. hulp gehad van copilet om de code van https://www.w3schools.com/php/php_sessions.asp zo aan te passen dat het hierbij past
@@ -465,6 +466,7 @@ body.dark .sidebar a {
 <td><?= htmlspecialchars($row['lastname']) ?></td>
 <td><?= htmlspecialchars($row['email']) ?></td>
 <td>
+  <!-- https://www.w3schools.com/php/php_forms.asp -->
     <form method="POST">
         <input type="hidden" name="friendid" value="<?= $row['friendid'] ?>">
         <button type="submit" name="delete_friend">Verwijderen</button>

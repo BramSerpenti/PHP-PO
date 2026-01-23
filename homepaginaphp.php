@@ -1,4 +1,5 @@
 <?php
+//https://www.w3schools.com/php/php_mysql_insert.asp
 session_start();
 if (!isset($_SESSION["id"])) {
     header("Location: login.php");
